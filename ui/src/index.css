@@ -1,0 +1,63 @@
+.usb-container {
+  border: 1px solid rgb(140, 228, 255);
+  border-radius: 5px;
+  width: 97%;
+  padding: 5px;
+  background-color: rgba(255, 255, 255, 0.274);
+  text-align: center;
+  height: 100px;
+  transition: background-color 100ms;
+}
+
+.usb-container:hover {
+  background-color: rgba(255, 255, 255, 0.438);
+
+}
+
+.usb-container button {
+  border: none;
+  background-color: white;
+}
+
+.usb-container h3 {
+  font-size: 15px;
+  font-weight: 100;
+  margin: 0;
+  margin-top: 5px;
+}
+
+.usb-container textarea {
+  resize: none;
+  text-align: center;
+  font-size: 20px;
+  height: 1em;
+}
+
+.usb-container progress {
+  height: 10px;
+}
+.upgrades {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-column-gap: 20px; /* space between columns, change as needed */
+  grid-row-gap: 10px; /* space between rows, change as needed */
+  height: 100px;
+  padding: 5px;
+}
+body {
+  
+  text-align: center;
+  background: linear-gradient(180deg, #000049 0%, #001e5f 100%);
+  background-repeat: no-repeat;
+  background-size: cover;
+  color: white;
+  font-family: Arial;
+  height: 100vh;
+  margin: 0;
+}
+
+h1 {
+  font-size: 70px;
+  margin: 0;
+  margin-bottom: 15px;
+}

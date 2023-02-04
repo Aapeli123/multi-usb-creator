@@ -12,8 +12,9 @@ const UsbContainer = (props: {
       <div className="usb-container">
         {" "}
         <textarea placeholder={"USB-portin numero"}></textarea>
-        <h3>{props.dest}</h3>{" "}
+        <br />
         <progress min={0} max={1} value={props.prog}></progress> <br></br>
+        {!props.ready &&<h3> {Math.round(props.prog * 100)}% </h3>}
         {props.prog === 0 && (
           <button
             disabled={clickedUpdate}

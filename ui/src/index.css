@@ -5,7 +5,7 @@
   padding: 5px;
   background-color: rgba(255, 255, 255, 0.274);
   text-align: center;
-  height: 100px;
+  height: 200px;
   transition: background-color 100ms;
 }
 
@@ -17,32 +17,38 @@
 .usb-container button {
   border: none;
   background-color: white;
+  font-size: 50px;
+  font-weight: 100;
 }
 
 .usb-container h3 {
-  font-size: 15px;
+  font-size: 25px;
   font-weight: 100;
-  margin: 0;
-  margin-top: 5px;
+  margin-top: 0px;
+  margin-bottom: 30px;
 }
 
 .usb-container textarea {
   resize: none;
   text-align: center;
-  font-size: 20px;
+  font-size: 30px;
+  margin-bottom: 5px;
   height: 1em;
+  width: 95%;
 }
 
 .usb-container progress {
-  height: 10px;
+  width: 95%;
+
 }
 .upgrades {
   display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   grid-column-gap: 20px; /* space between columns, change as needed */
   grid-row-gap: 10px; /* space between rows, change as needed */
   height: 100px;
   padding: 5px;
+  
 }
 body {
   

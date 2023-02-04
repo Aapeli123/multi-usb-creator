@@ -8,7 +8,7 @@
     "build": "tsc && vite build",
     "build-container": "tsc && vite build && docker build -t webserver .",
     "preview": "vite preview",
-    "start": "docker run -it --rm -d -p 8080:80 --name web webserver && firefox localhost:8080",
+    "start": "docker run -it --rm -d -p 8080:80 --name web webserver",
     "stop": "docker stop web"
   },
   "dependencies": {

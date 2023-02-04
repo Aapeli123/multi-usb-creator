@@ -6,11 +6,18 @@ import (
 	"io"
 	"os"
 	"sync"
+	"time"
 )
 
 var WG sync.WaitGroup
 
-func Copy(src string, dest string, updates chan<- float32) error {
+type WriteUpdate struct {
+	Progress float32
+	ETA      float32
+	Error    bool
+}
+
+func Copy(src string, dest string, updates chan<- WriteUpdate) error {
 	fmt.Println("started write to ", dest)
 	WG.Add(1)
 	defer close(updates)
@@ -31,6 +38,7 @@ func Copy(src string, dest string, updates chan<- float32) error {
 
 	out, err := os.OpenFile(dest, os.O_WRONLY, 0644)
 	if err != nil {
+		updates <- WriteUpdate{Error: true}
 		return err
 	}
 	writer := bufio.NewWriter(out)
@@ -38,21 +46,29 @@ func Copy(src string, dest string, updates chan<- float32) error {
 
 	total := float32(0)
 	for {
+		t := time.Now()
 		c, err := reader.Read(data)
 		if err == io.EOF {
 			break
 		} else if err != nil {
+			updates <- WriteUpdate{Error: true}
 			return err
 		}
 		total += float32(c)
 		data = data[:c]
-		_, err = writer.Write(data)
+		n, err := writer.Write(data)
 		if err != nil {
+			updates <- WriteUpdate{Error: true}
 			return err
 		}
+		duration := time.Since(t)
+
+		bps := float64(n) / duration.Seconds()
+		bytes_remain := float32(filesize) - total
+		eta := bytes_remain / float32(bps)
 		fmt.Printf("Updating %s: %f%%\n", dest, 100*total/float32(filesize))
 
-		updates <- float32(total / float32(filesize))
+		updates <- WriteUpdate{Progress: total / float32(filesize), ETA: eta}
 	}
 	return nil
 }

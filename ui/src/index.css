@@ -39,7 +39,12 @@
 
 .usb-container progress {
   width: 95%;
+  background-color: white;
 
+}
+
+progress::-moz-progress-bar {
+  background-color: rgb(0, 95, 184);
 }
 .upgrades {
   display: grid;
@@ -66,4 +71,30 @@ h1 {
   font-size: 70px;
   margin: 0;
   margin-bottom: 15px;
+}
+
+#error-btn {
+  margin: 0;
+  font-size: 30px;
+}
+
+#error-text {
+  margin: 5px;
+} 
+
+.usb-error {
+  background-color: rgba(255, 0, 0, 0.527) !important;
+}
+
+.usb-error:hover {
+  background-color: rgba(255, 0, 0, 0.637) !important;
+}
+
+.usb-ready {
+  background-color: rgba(0, 255, 0, 0.459) !important;
+}
+
+.usb-ready:hover {
+  background-color: rgba(0, 255, 0, 0.664) !important;
+
 }

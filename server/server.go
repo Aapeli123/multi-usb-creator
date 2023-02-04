@@ -20,7 +20,7 @@ type UsbEvent struct {
 type MsgBody struct {
 	USBEvent UsbEvent
 	Dest     string
-	Progress float32
+	Progress usbtools.WriteUpdate
 }
 
 type WsMessage struct {
@@ -29,6 +29,7 @@ type WsMessage struct {
 }
 
 func handleWs(conn *websocket.Conn) {
+	fmt.Println("New connection!")
 	id := uuid.New().String()
 	connections[id] = conn
 	defer delete(connections, id)
@@ -54,7 +55,7 @@ func handleWs(conn *websocket.Conn) {
 
 		switch msg_parsed.Op {
 		case "start":
-			channel := make(chan (float32))
+			channel := make(chan (usbtools.WriteUpdate))
 			go usbtools.Copy("./images/koe.img", msg_parsed.Body.Dest, channel)
 			go sendProgress(channel, msg_parsed.Body.Dest)
 		}
@@ -62,10 +63,14 @@ func handleWs(conn *websocket.Conn) {
 	}
 }
 
-func sendProgress(prog chan (float32), dest string) {
+func sendProgress(prog chan (usbtools.WriteUpdate), dest string) {
 	for progress := range prog {
+		if progress.Error {
+			Broadcast(WsMessage{Op: "error", Body: MsgBody{Dest: dest}})
+			return
+		}
 		Broadcast(WsMessage{Op: "prog", Body: MsgBody{Dest: dest, Progress: progress}})
-		if progress == 1 {
+		if progress.Progress == 1 {
 			break
 		}
 	}
@@ -98,6 +103,7 @@ func upgradeWs(w http.ResponseWriter, req *http.Request) {
 }
 
 func StartServer() {
+	fmt.Println("Server starting...")
 	http.HandleFunc("/", upgradeWs)
 	http.ListenAndServe(":1234", nil)
 }

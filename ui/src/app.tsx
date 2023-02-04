@@ -18,60 +18,93 @@ interface WsMsg {
       Disconnected: string[] | null;
     };
     Dest: string;
-    Progress: number;
+    Progress: {
+      Progress: number;
+      ETA: number;
+    };
   };
 }
 
 interface prog {
-  prog: number;
+  prog: {
+    Progress: number;
+    ETA: number;
+  };
   ready: boolean;
   dest: string;
+  error: boolean;
 }
 
 export function App() {
   const [connection, setConnection] = useState<WebSocket | null>(null);
-  const [usbs, setUsbs] = useState<prog[]>(() => [
-    { dest: "", prog: 1, ready: true },
-  ]);
+  const [usbs, setUsbs] = useState<prog[]>(() => []);
+  const [err, setErr] = useState(false);
+  const removeUSB = (dest: string) => {
+    setUsbs(
+      produce((draft) => {
+        draft.forEach((usb, i) => {
+          if (usb.dest == dest) {
+            draft.splice(i, 1);
+          }
+        });
+      })
+    );
+  };
 
   const onMsg = (ev: MessageEvent) => {
     const msg = JSON.parse(ev.data) as WsMsg;
-    console.log(msg);
 
     switch (msg.Op) {
       case "usbchange":
-        console.log("New usb connected:");
-        console.log(usbs);
+        console.log("USB state has changed.");
         setUsbs(
           produce((draft) => {
-            console.log(draft);
-            console.log(draft.map((u) => u.dest));
             if (msg.Body.USBEvent.Connected === null) {
               return;
             }
             const connected = msg.Body.USBEvent.Connected;
+            console.log("New state:");
             console.log(connected);
             const newConns = connected
               .filter((usb) => !draft.map((u) => u.dest).includes(usb))
               .map((u) => {
                 return {
-                  prog: 0,
+                  prog: { Progress: 0, ETA: 0 },
                   ready: false,
                   dest: u,
+                  error: false,
                 };
               });
+            const newConnsOverErr = connected.filter((usb) =>
+              draft.filter((u) => u.error).find((u) => u.dest == usb)
+            );
             const removed = draft
               .map((u) => u.dest)
               .filter((u) => !connected.includes(u));
-            console.log(removed);
-            console.log(newConns);
             draft.forEach((u, i) => {
               if (removed.includes(u.dest)) {
+                console.log(draft[i].ready);
+                if (draft[i].prog.Progress === 0 || draft[i].ready) {
+                  draft.splice(i, 1);
+                } else {
+                  draft[i].error = true;
+                }
+              }
+              if (newConnsOverErr.includes(u.dest)) {
                 draft.splice(i, 1);
               }
             });
+            newConns.push(
+              ...newConnsOverErr.map((dest) => {
+                return {
+                  prog: { Progress: 0, ETA: 0 },
+                  ready: false,
+                  dest: dest,
+                  error: false,
+                };
+              })
+            );
             draft.push(...newConns);
-            console.log(draft);
           })
         );
         break;
@@ -81,9 +114,6 @@ export function App() {
             const usb_names = draft.map((u) => u.dest);
             draft[usb_names.indexOf(msg.Body.Dest)].prog = msg.Body.Progress;
           })
-        );
-        console.log(
-          `Updating ${msg.Body.Dest}. Progress ${msg.Body.Progress * 100}%`
         );
         break;
       case "ready": {
@@ -112,16 +142,33 @@ export function App() {
   const connect = async () => {
     try {
       const conn = await establishConn("ws://localhost:1234");
+      setErr(false);
       conn.addEventListener("message", onMsg);
+      conn.addEventListener("close", () => {
+        setConnection(null);
+        connect();
+      });
       setConnection(conn);
     } catch (err) {
+      setErr(true);
       console.log(err);
+      setTimeout(() => connect(), 1000);
     }
   };
 
   useEffect(() => {
     if (connection === null) connect();
   }, []);
+  if (err) {
+    return (
+      <>
+        <h1>
+          Virhe tikkujen kirjoituspalvelimeen yhdistäessä, yritetään pian
+          uudestaan
+        </h1>
+      </>
+    );
+  }
   return connection === null ? (
     <h1>Connecting</h1>
   ) : (
@@ -145,8 +192,10 @@ export function App() {
               dest={u.dest}
               prog={u.prog}
               ready={u.ready}
+              error={u.error}
               startUpdate={startUpdate}
               key={u.dest}
+              remove={() => removeUSB(u.dest)}
             />
           );
         })}
